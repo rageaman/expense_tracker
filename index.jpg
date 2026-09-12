@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Expense Tracker</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+</head>
+<body class="bg-gray-200 min-h-screen flex flex-col justify-between relative">
+
+<div class="flex-1 p-4 overflow-y-auto">
+  <h1 class="text-xl font-bold text-blue-700 text-center mb-4">💰 Expense Tracker</h1>
+  <div class="bg-white p-4 border border-gray-200 shadow-md rounded-lg relative">
+
+    <!-- ✅ Responsive Total & Icons -->
+    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-3 space-y-2 sm:space-y-0">
+      <h2 class="text-lg font-semibold">Expenses</h2>
+      <div class="flex flex-wrap items-center gap-2 sm:gap-3">
+        <span class="text-lg font-semibold flex-shrink-0">
+          Total: <span id="total" class="text-green-700">Rs. 0</span>
+        </span>
+        <button onclick="openHeaderSettings()" title="Edit PDF Headers"
+          class="bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600 transition text-sm">
+          ⚙️
+        </button>
+        <button onclick="resetHeaders()" title="Reset PDF Headers"
+          class="bg-gray-500 text-white px-3 py-1 rounded hover:bg-gray-600 transition text-sm">
+          ♻️
+        </button>
+      </div>
+    </div>
+
+    <ul id="expenseList" class="divide-y divide-gray-200 min-h-[200px]">
+      <li class="text-gray-500 text-center py-8" id="emptyState">
+        No expenses added yet. Start by adding your first expense below!
+      </li>
+    </ul>
+  </div>
+</div>
+
+<div class="bg-white p-4 border-t border-gray-300 shadow-lg">
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-2">
+    <input id="name" type="text" placeholder="Expense Name" class="px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-400 focus:border-blue-400 text-sm" maxlength="50" />
+    <input id="amount" type="number" placeholder="Amount (Rs.)" step="0.01" min="0" class="px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-400 focus:border-blue-400 text-sm" />
+  </div>
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-2">
+    <input id="date" type="date" class="px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-400 focus:border-blue-400 text-sm" />
+    <input id="category" type="text" placeholder="Category" class="px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-400 focus:border-blue-400 text-sm" maxlength="30" />
+  </div>
+  <div class="mb-2">
+    <input id="quantity" type="text" placeholder="Quantity/Details (optional)" class="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-400 focus:border-blue-400 text-sm" maxlength="50" />
+  </div>
+
+  <!-- ✅ Toggle for Multiply -->
+  <div class="mb-2 flex items-center space-x-2">
+    <input type="checkbox" id="enableMultiply" class="h-4 w-4 text-blue-600 border-gray-300 rounded" checked>
+    <label for="enableMultiply" class="text-sm text-gray-700 select-none">
+      Enable Amount × Quantity
+    </label>
+  </div>
+
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-2">
+    <input id="pdfTitle" type="text" placeholder="PDF Title (optional)" class="px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-400 focus:border-blue-400 text-sm" maxlength="50" />
+    <button onclick="downloadPDF()" id="pdfBtn" class="bg-red-500 text-white py-2 rounded hover:bg-red-600 transition text-sm font-medium opacity-50 cursor-not-allowed" disabled>📄 Download PDF</button>
+  </div>
+  <button onclick="addExpense()" class="mt-3 w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition font-medium">➕ Add / Update Expense</button>
+  <button onclick="clearAllExpenses()" class="mt-2 w-full bg-gray-500 text-white py-2 rounded hover:bg-gray-600 transition font-medium">🗑️ Clear All</button>
+</div>
+
+<!-- ⚙️ Modal for editing PDF Headers -->
+<div id="headerModal" class="fixed inset-0 bg-black bg-opacity-40 hidden items-center justify-center z-50">
+  <div class="bg-white w-11/12 sm:w-96 rounded-lg shadow-lg p-5">
+    <h2 class="text-lg font-semibold mb-3">Edit PDF Headers</h2>
+    <div id="headerInputs" class="space-y-2"></div>
+    <div class="mt-4 flex justify-end space-x-2">
+      <button onclick="closeHeaderSettings()" class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">Close</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let expenses = [];
+let editIndex = null;
+let pdfHeaders = ["S.No", "Name", "Category", "Amount", "Qty/Details", "Total"];
+
+function loadHeaders() {
+  const saved = localStorage.getItem("pdfHeaders");
+  if (saved) pdfHeaders = JSON.parse(saved);
+}
+loadHeaders();
+
+function initApp() {
+  document.getElementById("date").value = new Date().toISOString().split("T")[0];
+  loadExpenses();
+  renderExpenses();
+}
+
+function saveExpenses() {
+  localStorage.setItem("expensesData", JSON.stringify(expenses));
+}
+
+function loadExpenses() {
+  const saved = localStorage.getItem("expensesData");
+  if (saved) expenses = JSON.parse(saved);
+}
+
+function renderExpenses() {
+  const list = document.getElementById("expenseList");
+  const totalEl = document.getElementById("total");
+  const pdfBtn = document.getElementById("pdfBtn");
+
+  if (!expenses.length) {
+    list.innerHTML = '<li class="text-gray-500 text-center py-8" id="emptyState">No expenses added yet. Start by adding your first expense below!</li>';
+    totalEl.textContent = "Rs. 0";
+    pdfBtn.disabled = true;
+    pdfBtn.classList.add("opacity-50","cursor-not-allowed");
+    return;
+  }
+
+  pdfBtn.disabled = false;
+  pdfBtn.classList.remove("opacity-50","cursor-not-allowed");
+
+  list.innerHTML = expenses.map((e,i)=>{
+    const amt=Number(e.amount).toFixed(2);
+    const tot=Number(e.totalAmount).toFixed(2);
+    const qtyText=e.quantity?` (${e.quantity})`:"";
+    return `<li class="flex flex-col sm:flex-row justify-between items-start sm:items-center py-3 px-2 hover:bg-gray-50 rounded transition">
+      <div class="flex-1 min-w-0 mb-2 sm:mb-0">
+        <div class="font-medium text-gray-900">${escapeHtml(e.name)}</div>
+        <div class="text-sm text-gray-600">
+          ${e.category || 'No category'} • Rs. ${amt}${qtyText} • <span class="font-medium">Total: Rs. ${tot}</span>
+        </div>
+        <div class="text-xs text-gray-500">${formatDate(e.date)}</div>
+      </div>
+      <div class="flex space-x-2">
+        <button onclick="editExpense(${i})" class="text-blue-500 hover:text-blue-700 hover:bg-blue-50 p-1 rounded transition" title="Edit expense">✏️</button>
+        <button onclick="deleteExpense(${i})" class="text-red-500 hover:text-red-700 hover:bg-red-50 p-1 rounded transition" title="Delete expense">🗑️</button>
+      </div>
+    </li>`;
+  }).join("");
+
+  const sum=expenses.reduce((acc,e)=>acc+Number(e.totalAmount||0),0);
+  totalEl.textContent="Rs. "+sum.toFixed(2);
+}
+
+function addExpense() {
+  const nameEl=document.getElementById("name");
+  const amountEl=document.getElementById("amount");
+  const dateEl=document.getElementById("date");
+  const categoryEl=document.getElementById("category");
+  const quantityEl=document.getElementById("quantity");
+  const multiplyEnabled = document.getElementById("enableMultiply").checked;
+
+  if(!nameEl.value.trim()){ alert("Please enter an expense name"); nameEl.focus(); return; }
+  const amtVal=parseFloat(amountEl.value);
+  if(!amtVal||isNaN(amtVal)||amtVal<=0){ alert("Please enter a valid amount greater than 0"); amountEl.focus(); return; }
+  if(!dateEl.value){ alert("Please select a date"); dateEl.focus(); return; }
+
+  const qtyVal=quantityEl.value.trim();
+  const totalAmt=(multiplyEnabled && qtyVal && !isNaN(parseFloat(qtyVal)))
+    ? amtVal*parseFloat(qtyVal)
+    : amtVal;
+
+  const newExpense = {
+    id:Date.now(),
+    name:nameEl.value.trim(),
+    amount:amtVal,
+    quantity:qtyVal||null,
+    totalAmount:totalAmt,
+    date:dateEl.value,
+    category:categoryEl.value.trim()||null,
+    createdAt:new Date().toISOString()
+  };
+
+  if(editIndex !== null) {
+    expenses[editIndex] = newExpense;
+    editIndex = null;
+    showToast("Expense updated successfully!");
+  } else {
+    expenses.push(newExpense);
+    showToast("Expense added successfully!");
+  }
+
+  saveExpenses();
+
+  nameEl.value="";
+  amountEl.value="";
+  categoryEl.value="";
+  quantityEl.value="";
+  dateEl.value=new Date().toISOString().split("T")[0];
+
+  renderExpenses();
+}
+
+function editExpense(idx) {
+  const e = expenses[idx];
+  document.getElementById("name").value = e.name;
+  document.getElementById("amount").value = e.amount;
+  document.getElementById("date").value = e.date;
+  document.getElementById("category").value = e.category || "";
+  document.getElementById("quantity").value = e.quantity || "";
+  editIndex = idx;
+  showToast("Editing mode: Update the fields and press Add / Update Expense");
+}
+
+function deleteExpense(idx){
+  if(confirm("Are you sure you want to delete this expense?")){
+    expenses.splice(idx,1);
+    saveExpenses();
+    renderExpenses();
+    showToast("Expense deleted successfully!");
+  }
+}
+
+function clearAllExpenses(){
+  if(!expenses.length){alert("No expenses to clear!");return;}
+  if(confirm(`Are you sure you want to delete all ${expenses.length} expenses? This action cannot be undone.`)){
+    expenses=[];
+    saveExpenses();
+    renderExpenses();
+    showToast("All expenses cleared!");
+  }
+}
+
+function openHeaderSettings() {
+  const modal = document.getElementById("headerModal");
+  const container = document.getElementById("headerInputs");
+  container.innerHTML = "";
+
+  pdfHeaders.forEach((h, i) => {
+    container.innerHTML += `
+      <input type="text" value="${h}" data-index="${i}"
+      class="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-400 text-sm"
+      oninput="updateHeader(this, ${i})"/>
+    `;
+  });
+
+  modal.classList.remove("hidden");
+  modal.classList.add("flex");
+}
+
+function closeHeaderSettings() {
+  document.getElementById("headerModal").classList.add("hidden");
+}
+
+function updateHeader(el, index) {
+  pdfHeaders[index] = el.value.trim() || "-";
+  localStorage.setItem("pdfHeaders", JSON.stringify(pdfHeaders));
+  showToast("Headers updated & saved!");
+}
+
+function resetHeaders() {
+  if(confirm("Reset headers to default?")) {
+    pdfHeaders = ["S.No", "Name", "Category", "Amount", "Qty/Details", "Total"];
+    localStorage.setItem("pdfHeaders", JSON.stringify(pdfHeaders));
+    showToast("Headers reset to default!");
+  }
+}
+
+function downloadPDF(){
+  if(!expenses.length){alert("No expenses to export!");return;}
+  const { jsPDF }=window.jspdf;
+  const doc=new jsPDF("p","pt","a4");
+  const pdfTitleInput=document.getElementById("pdfTitle").value.trim();
+  const pdfTitle=pdfTitleInput.length?pdfTitleInput:"Expense Report";
+
+  doc.setFontSize(18);
+  doc.setFont("helvetica","bold");
+  doc.setTextColor(0,0,0);
+  doc.text(pdfTitle,doc.internal.pageSize.width/2,50,{align:"center"});
+
+  const headers=[pdfHeaders];
+  const rows=expenses.map((e,i)=>[
+    i+1,
+    e.name.length>20?e.name.substring(0,20)+"...":e.name,
+    e.category||"-",
+    Number(e.amount).toFixed(2),
+    e.quantity||"-",
+    Number(e.totalAmount).toFixed(2)
+  ]);
+  const totalSum=expenses.reduce((acc,e)=>acc+Number(e.totalAmount||0),0);
+
+  doc.autoTable({
+    head: headers,
+    body: rows,
+    startY: 80,
+    styles: { fontSize:11, halign:"center", valign:"middle", cellPadding:6, textColor:[0,0,0], lineColor:[0,0,0], lineWidth:0.3 },
+    headStyles: { fillColor:false, textColor:[0,0,0], fontStyle:"bold", fontSize:12 },
+    bodyStyles: { cellPadding:5, fontSize:10 },
+    foot:[["","","","","TOTAL", totalSum.toFixed(2)]],
+    footStyles: { fillColor:false, textColor:[0,0,0], fontStyle:"bold", halign:"center", valign:"middle", fontSize:10 },
+    theme:"grid",
+    margin:{left:40,right:40}
+  });
+
+  const safeTitle=pdfTitle.replace(/[^a-z0-9]/gi,"_");
+  const fileName=`${safeTitle}_${new Date().toISOString().split("T")[0]}.pdf`;
+  doc.save(fileName);
+  showToast("PDF downloaded successfully!");
+}
+
+function escapeHtml(str){return str.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;");}
+function formatDate(d){try{const dt=new Date(d);return dt.toLocaleDateString("en-IN",{day:"numeric",month:"short",year:"numeric"});}catch{return d;}}
+function showToast(msg){const toast=document.createElement("div");toast.className="fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded shadow-lg z-50 transition-opacity";toast.textContent=msg;document.body.appendChild(toast);setTimeout(()=>{toast.style.opacity="0";setTimeout(()=>document.body.removeChild(toast),300);},300);}
+
+document.addEventListener("DOMContentLoaded",()=>{
+  ["name","amount","date","category","quantity"].forEach(id=>{
+    document.getElementById(id).addEventListener("keypress",(e)=>{if(e.key==="Enter") addExpense();});
+  });
+  initApp();
+});
+</script>
+
+</body>
+</html>
