@@ -14,12 +14,12 @@
 <div class="bg-white p-4 border border-gray-200 shadow-md rounded-lg">
 <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-3 gap-2">
 <h2 class="text-lg font-semibold">Expenses</h2>
-<div class="flex flex-nowrap items-center gap-1 whitespace-nowrap overflow-x-auto">
-<span class="text-sm font-semibold shrink-0">Total: <span id="total" class="text-green-700">Rs. 0</span></span>
-<button onclick="saveData()" class="bg-green-600 text-white px-2 py-1 rounded hover:bg-green-700 text-xs shrink-0" title="Save">💾 Save</button>
-<button onclick="openFilePicker()" class="bg-blue-600 text-white px-2 py-1 rounded hover:bg-blue-700 text-xs shrink-0" title="Import">📂 Import</button>
-<button onclick="openHeaderSettings()" class="bg-yellow-500 text-white px-2 py-1 rounded hover:bg-yellow-600 text-xs shrink-0" title="Header settings">⚙️</button>
-<button onclick="resetHeaders()" class="bg-gray-500 text-white px-2 py-1 rounded hover:bg-gray-600 text-xs shrink-0" title="Reset headers">♻️</button>
+<div class="flex w-full sm:w-auto flex-nowrap items-center gap-1 whitespace-nowrap overflow-hidden">
+<span class="text-xs font-semibold shrink-0 mr-auto">Total: <span id="total" class="text-green-700">Rs. 0</span></span>
+<button onclick="saveData()" class="bg-green-600 text-white w-7 h-7 p-0 rounded hover:bg-green-700 text-base leading-none shrink-0 flex items-center justify-center" title="Save" aria-label="Save">💾</button>
+<button onclick="openFilePicker()" class="bg-blue-600 text-white w-7 h-7 p-0 rounded hover:bg-blue-700 text-base leading-none shrink-0 flex items-center justify-center" title="Import" aria-label="Import">📂</button>
+<button onclick="openHeaderSettings()" class="bg-yellow-500 text-white w-7 h-7 p-0 rounded hover:bg-yellow-600 text-base leading-none shrink-0 flex items-center justify-center" title="Header settings" aria-label="Header settings">⚙️</button>
+<button onclick="resetHeaders()" class="bg-gray-500 text-white w-7 h-7 p-0 rounded hover:bg-gray-600 text-base leading-none shrink-0 flex items-center justify-center" title="Reset headers" aria-label="Reset headers">♻️</button>
 </div></div>
 <input id="fileInput" type="file" accept=".json,application/json" class="hidden" onchange="handleFile(event)" />
 <ul id="expenseList" class="divide-y divide-gray-200 min-h-[200px]"></ul>
