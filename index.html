@@ -23,6 +23,8 @@ html.dark input{background-color:#374151;color:#f9fafb;border-color:#6b7280}
 html.dark input::placeholder{color:#9ca3af}
 html.dark #headerModal>div,html.dark #importModal>div{background-color:#1f2937}
 html.dark #expenseList .border-blue-400{border-color:#60a5fa}
+html.dark #emptyDropZone{background:#1f2937!important;border-color:#4b5563!important;color:#e5e7eb}
+html.dark #emptyDropZone:hover{background:#263449!important;border-color:#60a5fa!important}
 </style>
 </head>
 <body class="bg-gray-200 min-h-screen flex flex-col justify-between">
@@ -35,8 +37,8 @@ html.dark #expenseList .border-blue-400{border-color:#60a5fa}
 <span class="text-xs font-semibold shrink-0 mr-auto">Total: <span id="total" class="text-green-700">Rs. 0</span></span>
 <button onclick="saveData()" class="bg-green-600 text-white w-7 h-7 p-0 rounded hover:bg-green-700 text-base leading-none shrink-0 flex items-center justify-center" title="Save" aria-label="Save">💾</button>
 <button onclick="openFilePicker()" class="bg-blue-600 text-white w-7 h-7 p-0 rounded hover:bg-blue-700 text-base leading-none shrink-0 flex items-center justify-center" title="Import" aria-label="Import">📂</button>
-<button onclick="openThemeSettings()" class="bg-purple-600 text-white w-7 h-7 p-0 rounded hover:bg-purple-700 text-base leading-none shrink-0 flex items-center justify-center" title="Theme settings" aria-label="Theme settings">⚙️</button>
 <button onclick="openHeaderSettings()" class="bg-yellow-500 text-white w-7 h-7 p-0 rounded hover:bg-yellow-600 text-base leading-none shrink-0 flex items-center justify-center" title="Edit PDF header" aria-label="Edit PDF header">✏️</button>
+<button onclick="openThemeSettings()" class="bg-purple-600 text-white w-7 h-7 p-0 rounded hover:bg-purple-700 text-base leading-none shrink-0 flex items-center justify-center" title="Theme settings" aria-label="Theme settings">⚙️</button>
 </div></div>
 <input id="fileInput" type="file" accept=".json,application/json" class="hidden" onchange="handleFile(event)" />
 <ul id="expenseList" class="divide-y divide-gray-200 min-h-[200px]"></ul>
