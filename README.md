@@ -1,7 +1,7 @@
 # Expense Tracker
 
 <p align="center">
-  A simple and clean browser-based expense tracker for recording and managing daily expenses.
+  A simple and clean browser-based expense tracker for recording, managing, saving, importing and exporting daily expenses.
 </p>
 
 <p align="center">
@@ -14,9 +14,9 @@
 
 ## 💸 About
 
-Expense Tracker is a lightweight browser-based application for keeping track of personal expenses.
+Expense Tracker is a lightweight browser-based application for keeping daily expense records organized.
 
-Add your expenses, view your spending, and keep your daily expense records organized in one place.
+Add expenses with name, amount, date, category and optional quantity/details, manage saved entries, calculate totals, export records to PDF, and save or import your data as JSON files.
 
 ---
 
@@ -28,21 +28,52 @@ Add your expenses, view your spending, and keep your daily expense records organ
 
 ### 📊 Expense Management
 
-- Add and manage expenses
-- Track expense amounts
-- Keep daily spending records organized
-- View your expense information clearly
+- Add and update expense entries
+- Edit and delete existing expenses
+- Move expenses up or down in the list
+- Track name, amount, date and category
+- Add optional quantity/details
+- Calculate amount × quantity when enabled
+- Display the overall expense total
 
 </td>
 <td width="50%" valign="top">
 
-### 🎨 Interface
+### 💾 Save & Import
+
+- Save expense data as a JSON file
+- Import previously saved JSON data
+- Replace current data or add imported data
+- Drag & Drop JSON import when the list is empty
+- Preserves PDF header and title settings in saved data
+
+</td>
+</tr>
+</table>
+
+<table>
+<tr>
+<td width="50%" valign="top">
+
+### 📄 PDF Export
+
+- Download expense records as a PDF
+- Enable or disable PDF columns
+- Rename PDF column headers
+- Customize the PDF title
+- Reset PDF headers to their defaults
+- PDF export becomes available when expenses exist
+
+</td>
+<td width="50%" valign="top">
+
+### 🎨 Interface & Theme
 
 - Clean and minimal interface
-- Simple and easy-to-use controls
-- Responsive layout
-- Mobile-friendly design
-- No account or setup required
+- Responsive desktop and mobile layout
+- Light, dark and system theme modes
+- Touch-friendly controls
+- Simple modal settings for import, PDF headers and theme
 
 </td>
 </tr>
@@ -54,11 +85,15 @@ Add your expenses, view your spending, and keep your daily expense records organ
 
 <table>
 <tr>
-<td align="center" width="33%"><strong>HTML5</strong><br>Page structure</td>
-<td align="center" width="33%"><strong>CSS3</strong><br>Layout & styling</td>
-<td align="center" width="33%"><strong>JavaScript</strong><br>Application logic</td>
+<td align="center" width="100%"><strong>HTML5 + Tailwind CSS + JavaScript</strong><br>Complete application contained in a single <code>index.html</code> file</td>
 </tr>
 </table>
+
+### 📦 External Libraries
+
+- Tailwind CSS via CDN
+- jsPDF via CDN
+- jsPDF AutoTable via CDN
 
 ---
 
@@ -72,7 +107,7 @@ expense_tracker/
 
 | File | Description |
 |------|-------------|
-| `index.html` | Main expense tracker interface and functionality |
+| `index.html` | Complete expense tracker — interface, styling, functionality and integrations |
 | `README.md` | Project documentation |
 
 ---
@@ -95,6 +130,8 @@ python -m http.server 8000
 ```
 
 Then visit `http://localhost:8000`.
+
+> An internet connection is required for the CDN-hosted Tailwind CSS and PDF libraries to load.
 
 ---
 
